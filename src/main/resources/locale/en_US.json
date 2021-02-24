@@ -1,0 +1,87 @@
+{
+  "constants": {
+    "name": "Quiver",
+    "premiumName": "Bullseye",
+    "availableLocales": "The current list of available locales are: \n\n```\n[locales]\n```"
+  },
+  "commands": {
+    "banCommand": "ban",
+    "clearCommand": "clear"
+  },
+
+  "permissions": {
+    "insufficientPermissionsEmbedFooter": "Insufficient Permissions",
+    "insufficientPermissionsNoAdmin": "The owner of this server has disabled the ability for administrators to use this command.",
+    "insufficientPermissionsOwnerAdmin": "You need to have the [adminrole] role, or you need to be the Owner of the server to use this command!",
+    "insufficientPermissionsAdmin": "You need to have the [adminrole] role to use this command",
+    "insufficientPermissionsModerator": "You need to have one of the following roles to use this command, [adminrole] or [modrole]",
+    "insufficientPermissionsHelper": "You need to have one of the following roles to use this command, [adminrole], [modrole], or [helperrole]"
+  },
+
+  "blacklistErrors": {
+    "blacklistedServer": "You may not use any commands on this server as it has been blacklisted. If you believe this is in error, please have [serverowner] contact [botdev] on the [supportserver]",
+    "blacklistedMember": "You may not use any commands on any server as you have been blacklisted from using the bot. If you believe this is in error contact [botdev] on the [supportserver]"
+  },
+
+  "settingsCommand": {
+    "help": "Configure settings for the server",
+    "insufficientArguments": "You need to tell me which setting you would like to modify",
+    "insufficientPrefixArguments": "I need to know what you would like to use as the server's prefix.",
+    "insufficientLocaleArguments": "I need to know what locale you want to use for future messages",
+    "insufficientLogChannelArguments": "I need to know which channel you'd like to use as the logging channel.",
+    "insufficientJoinLeaveLogArguments": "I need to know which channel you'd like to use as a join/leave log",
+    "insufficientOwnerRoleArguments": "I need to know which role you would like to set as the Owner Role",
+    "insufficientAdminRoleArguments": "I need to know which role you would like to set as the Administrator Role",
+    "insufficientModRoleArguments": "I need to know which role you would like to set as the Moderator Role",
+    "insufficientHelperRoleArguments": "I need to know which role you would like to set as the Helper Role",
+    "insufficientResetArguments": "What setting you want to reset or remove",
+    "setPrefixSuccess": "Successfully set the prefix for all future commands to `[prefix]`",
+    "setPrefixSuccessLog": "[member] has set the prefix for all future commands to `[prefix]`",
+    "setLocaleSuccess": "Successfully set the locale to `[locale]`",
+    "setLocaleSuccessLog": "[member] has set the locale to `[locale]`",
+    "setLogChannelSuccess": "Successfully set the log channel to [channel]",
+    "setLogChannelSuccessLog": "[member] has set the log channel to [channel]",
+    "setJoinLeaveLogSuccess": "Successfully set the Join/Leave log channel to [channel]",
+    "setJoinLeaveLogSuccessLog": "[member] has set the Join/Leave log channel to [channel]",
+    "setOwnerRoleSuccess": "Successfully set the Owner role to [role]",
+    "setOwnerRoleSuccessLog": "[member] has set the Owner role to [role]",
+    "setAdminRoleSuccess": "Successfully set the Administrator role to [role]",
+    "setAdminRoleSuccessLog": "[member] has set the Administrator role to [role]",
+    "setModRoleSuccess": "Successfully set the Moderator role to [role]",
+    "setModRoleSuccessLog": "[member] has set the Moderator role to [role]",
+    "setHelperRoleSuccess": "Successfully set the Helper role to [role]",
+    "setHelperRoleSuccessLog": "[member] has set the Helper role to [role]",
+    "setDefaultPrefixSuccess": "Successfully reset the prefix to `Q!`",
+    "setDefaultPrefixSuccessLog": "[member] has reset the prefix to `Q!`",
+    "setDefaultLocaleSuccess": "Successfully reset the language setting to the default language for this guild based on the guild's location `[locale]`",
+    "setDefaultLocaleSuccessLog": "[member] has reset the language setting to the default language for this guild base on the guild's location `[lcoale]`",
+    "removeLogChannelSuccess": "Successfully removed the log channel from the guild settings",
+    "removeLogChannelSuccessLog": "[member] has removed the log channel from the guild settings",
+    "removeJoinLeaveLogSuccess": "Successfully removed the join/leave log channel from the guild settings",
+    "removeJoinLeaveLogSuccessLog": "[member has removed the join/leave log channel from the guild settings",
+    "removeOwnerRoleSuccess": "Successfully removed the Owner role from the guild settings",
+    "removeOwnerRoleSuccessLog": "[member] has removed the Owner role from the guild settings",
+    "removeAdministratorRoleSuccess": "Successfuly removed the Administrator role from the guild settings",
+    "removeAdministratorRoleSuccessLog": "[member] has removed the Administrator role from the guild settings",
+    "removeModeratorRoleSuccess": "Successfully removed the Moderator role from the guild settings",
+    "removeModeratorRoleSuccessLog": "[member] has removed the Moderator role from the guild settings",
+    "removeHelperRoleSuccess": "Successfully remove the Helper role from the guild settings",
+    "removeHelperRoleSuccessLog": "[member] has removed the Helper role from the guild settings"
+  },
+
+  "embed": {
+    "insufficientPermissions": "Insufficient Permissions",
+    "insufficientArguments": "Insufficient Arguments",
+    "footerPrefixChangeLog": "Prefix Change Log",
+    "footerLocaleChangeLog": "Locale Change Log",
+    "footerLogChannelLog": "Log Channel Change Log",
+    "footerJoinLogChannelChangeLog": "Join/Leave Log Channel Change Log",
+    "footerOwnerRoleChangeLog": "Owner Role Change Log",
+    "footerAdministratorRoleChangeLog": "Administrator Role Change Log",
+    "footerModeratorRoleChangeLog": "Moderator Role Change Log",
+    "footerHelperRoleChangeLog": "Helper Role Change Log",
+    "footerServerBlacklistNotification": "Blacklisted Server",
+    "footerMemberBlacklistNotification": "Blacklisted Member"
+  }
+
+}
