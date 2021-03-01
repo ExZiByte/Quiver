@@ -21,6 +21,6 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven
-    - run: |
+      run: |
        mvn -B package --file pom.xml
        scp -r ./target/Quiver-*-shaded.jar exacu.be:~/Quiver/Quiver.jar
