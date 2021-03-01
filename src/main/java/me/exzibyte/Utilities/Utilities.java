@@ -3,6 +3,7 @@ package me.exzibyte.Utilities;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import me.exzibyte.Quiver;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -21,16 +22,17 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class Utilities {
 
-    public static HashMap<String, HashMap<String, String>> settings = new HashMap<String, HashMap<String, String>>();
+    public static HashMap<String, HashMap<String, String>> guilds = new HashMap<String, HashMap<String, String>>();
+    public static HashMap<String, HashMap<String, String>> members = new HashMap<String, HashMap<String, String>>();
     Logging logging = new Logging();
     Database db = new Database();
 
     public void load() {
-        settings.clear();
+        guilds.clear();
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
 
-        FindIterable<Document> iterable = guilds.find();
+        FindIterable<Document> iterable = guildsCollection.find();
         MongoCursor<Document> cursor = iterable.iterator();
 
         try {
@@ -50,7 +52,7 @@ public class Utilities {
                 data.put("isBlacklisted", obj.get("isBlacklisted").toString());
                 data.put("adminSet", obj.get("adminSetEnabled").toString());
 
-                settings.put(obj.get("guildID").toString(), data);
+                guilds.put(obj.get("guildID").toString(), data);
             }
         } catch (ParseException ex) {
             logging.error(this.getClass(), ex.toString());
@@ -58,6 +60,30 @@ public class Utilities {
             db.close();
         }
 
+    }
+
+    public void loadMembers() {
+        members.clear();
+        db.connect();
+        MongoCollection<Document> membersCollection = db.getCollection("members");
+
+        FindIterable<Document> iterable = membersCollection.find();
+        MongoCursor<Document> cursor = iterable.iterator();
+
+        try {
+            while (cursor.hasNext()) {
+                JSONParser parser = new JSONParser();
+                JSONObject obj = (JSONObject) parser.parse(cursor.next().toJson());
+                HashMap<String, String> data = new HashMap<String, String>();
+                data.put("isBlacklisted", obj.get("isBlacklisted").toString());
+
+                members.put(obj.get("userID").toString(), data);
+            }
+        } catch (ParseException ex) {
+            logging.error(this.getClass(), ex.toString());
+        } finally {
+            db.close();
+        }
     }
 
     public boolean guildExists(Guild guild) {
@@ -71,10 +97,21 @@ public class Utilities {
         return false;
     }
 
+    public boolean memberExists(Member member) {
+        db.connect();
+        MongoCollection<Document> members = db.getCollection("members");
+        if (members.find(eq("userID", member.getUser().getId())).first() != null) {
+            db.close();
+            return true;
+        }
+        db.close();
+        return false;
+    }
+
     public void createNewGuild(Guild guild) {
         db.connect();
 
-        MongoCollection<Document> guilds = db.getCollection("guilds");
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
         Document newGuild = new Document("guildID", guild.getId())
                 .append("guildName", guild.getName())
                 .append("prefix", "Q!")
@@ -89,7 +126,7 @@ public class Utilities {
                 .append("isBlacklisted", false)
                 .append("adminSetEnabled", false);
 
-        guilds.insertOne(newGuild);
+        guildsCollection.insertOne(newGuild);
         db.close();
         HashMap<String, String> data = new HashMap<String, String>();
         data.put("locale", getDefaultLocale(guild));
@@ -104,7 +141,25 @@ public class Utilities {
         data.put("isBlacklisted", "false");
         data.put("adminSet", "false");
 
-        settings.put(guild.getId(), data);
+        guilds.put(guild.getId(), data);
+    }
+
+    public void createNewMember(Member member) {
+        if (!member.getUser().isBot()) {
+            db.connect();
+
+            MongoCollection<Document> membersCollection = db.getCollection("members");
+            Document newMember = new Document("userID", member.getJDA().retrieveUserById(member.getId()).complete().getId())
+                    .append("userName", member.getJDA().retrieveUserById(member.getId()).complete().getAsTag())
+                    .append("isBlacklisted", false);
+
+            membersCollection.insertOne(newMember);
+            db.close();
+            HashMap<String, String> data = new HashMap<String, String>();
+            data.put("isBlacklisted", "false");
+
+            members.put(member.getId(), data);
+        }
     }
 
     public String getDefaultLocale(Guild guild) {
@@ -133,41 +188,41 @@ public class Utilities {
     }
 
     public String getLocale(Guild guild) {
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         return map.get("locale");
     }
 
     public void setLocale(Guild guild, String locale) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("locale", locale);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("locale", locale);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
     public String getPrefix(Guild guild) {
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         return map.get("prefix");
     }
 
     public void setPrefix(Guild guild, String prefix) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("prefix", prefix);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("prefix", prefix);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
     public TextChannel getGlobalLogChannel(GuildMessageReceivedEvent event) {
@@ -179,167 +234,168 @@ public class Utilities {
     }
 
     public TextChannel getGuildLogChannel(Guild guild) {
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
 
-        if(map.get("logChannel").equals("")) return null;
+        if (map.get("logChannel").equals("")) return null;
 
         return guild.getTextChannelById(map.get("logChannel"));
     }
 
     public void setGuildLogChannel(Guild guild, String channelID) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("logChannelID", channelID);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("logChannel", channelID);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
-    public TextChannel getJoinLog(Guild guild){
-        HashMap<String, String> map = settings.get(guild.getId());
+    public TextChannel getJoinLog(Guild guild) {
+        HashMap<String, String> map = guilds.get(guild.getId());
 
-        if(map.get("joinLog").equals("")) return null;
+        if (map.get("joinLog").equals("")) return null;
 
         return guild.getTextChannelById(map.get("joinLog"));
     }
 
-    public void setJoinLog(Guild guild, String channelID){
+    public void setJoinLog(Guild guild, String channelID) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("joinLogID", channelID);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("joinLog", channelID);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
-    public Role getOwnerRole(Guild guild){
-        HashMap<String, String> map = settings.get(guild.getId());
+    public Role getOwnerRole(Guild guild) {
+        HashMap<String, String> map = guilds.get(guild.getId());
 
-        if(map.get("ownerRole").equals("")) return null;
+        if (map.get("ownerRole").equals("")) return null;
 
         return guild.getRoleById(map.get("ownerRole"));
     }
 
     public Role getAdministratorRole(Guild guild) {
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
 
-        if(map.get("administratorRole").equals("")) return null;
+        if (map.get("administratorRole").equals("")) return null;
 
         return guild.getRoleById(map.get("administratorRole"));
     }
 
     public Role getModeratorRole(Guild guild) {
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
 
-        if(map.get("moderatorRole").equals("")) return null;
+        if (map.get("moderatorRole").equals("")) return null;
 
         return guild.getRoleById(map.get("moderatorRole"));
     }
 
-    public Role getHelperRole(Guild guild){
-        HashMap<String, String> map = settings.get(guild.getId());
+    public Role getHelperRole(Guild guild) {
+        HashMap<String, String> map = guilds.get(guild.getId());
 
-        if(map.get("helperRole").equals("")) return null;
+        if (map.get("helperRole").equals("")) return null;
 
         return guild.getRoleById(map.get("helperRole"));
     }
 
-    public void setOwnerRole(Guild guild, String roleID){
+    public void setOwnerRole(Guild guild, String roleID) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("ownerRoleID", roleID);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("ownerRole", getOwnerRole(guild).getId(), roleID);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
-    public void setAdministratorRole(Guild guild, String roleID){
+    public void setAdministratorRole(Guild guild, String roleID) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("administratorRoleID", roleID);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("administratorRole", getAdministratorRole(guild).getId(), roleID);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
-    public void setModeratorRole(Guild guild, String roleID){
+    public void setModeratorRole(Guild guild, String roleID) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("moderatorRoleID", roleID);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("moderatorRole", getModeratorRole(guild).getId(), roleID);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
-    public void setHelperRole(Guild guild, String roleID){
+    public void setHelperRole(Guild guild, String roleID) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("helperRoleID", roleID);
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("helperRole", getHelperRole(guild).getId(), roleID);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
-    public String isPremium(Guild guild){
-        HashMap<String, String> map = settings.get(guild.getId());
+    public String isPremium(Guild guild) {
+        HashMap<String, String> map = guilds.get(guild.getId());
         return (map.get("isPremium"));
     }
 
-    public void setPremium(Guild guild, String enabled){
+    public void setPremium(Guild guild, String enabled) {
         db.connect();
-        MongoCollection<Document> guilds = db.getCollection("guilds");
-        Document guildDoc = guilds.find(eq("guildID", guild.getId())).first();
+        MongoCollection<Document> guildsCollection = db.getCollection("guilds");
+        Document guildDoc = guildsCollection.find(eq("guildID", guild.getId())).first();
         Bson newGuildDoc = new Document("isPremium", Boolean.parseBoolean(enabled));
         Bson updateDoc = new Document("$set", newGuildDoc);
-        guilds.findOneAndUpdate(guildDoc, updateDoc);
+        guildsCollection.findOneAndUpdate(guildDoc, updateDoc);
         db.close();
 
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         map.replace("isPremium", isPremium(guild), enabled);
-        settings.put(guild.getId(), map);
+        guilds.put(guild.getId(), map);
     }
 
     public boolean isServerBlacklisted(Guild guild) {
-        HashMap<String, String> map = settings.get(guild.getId());
+        HashMap<String, String> map = guilds.get(guild.getId());
         return Boolean.parseBoolean(map.get("isBlacklisted"));
     }
 
     public boolean isMemberBlacklisted(Member member) {
-        return false;
+        HashMap<String, String> map = members.get(member.getUser().getId());
+        return Boolean.parseBoolean(map.get("isBlacklisted"));
     }
 
-    public boolean isAdminSetEnabled(Guild guild){
-        HashMap<String, String> map = settings.get(guild.getId());
+    public boolean isAdminSetEnabled(Guild guild) {
+        HashMap<String, String> map = guilds.get(guild.getId());
         return Boolean.parseBoolean(map.get("adminSet"));
     }
 

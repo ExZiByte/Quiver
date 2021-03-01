@@ -4,6 +4,7 @@ import me.exzibyte.Utilities.Colors;
 import me.exzibyte.Utilities.Config;
 import me.exzibyte.Utilities.Utilities;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -18,6 +19,11 @@ public class GuildJoin extends ListenerAdapter {
             utils.createNewGuild(event.getGuild());
             eb.setDescription(String.format("I've been added to a new guild. \n\n```\nGuildID: %s\nGuild Name: %s\nMember Count: %s\nDefault Locale: %s\n```", event.getGuild().getId(), event.getGuild().getName(), event.getGuild().getMemberCount(), utils.getDefaultLocale(event.getGuild())));
             eb.setColor(Colors.correctGreen);
+            for(Member member: event.getGuild().getMembers()){
+                if(!utils.memberExists(member)){
+                    utils.createNewMember(member);
+                }
+            }
 
         } else {
             eb.setDescription(String.format("Either Discord fired a false guild join event or I got readded to a guild that is already in the database.\n\n```\nGuild Name: %s\nGuildID: %s\n```", event.getGuild().getName(), event.getGuild().getId()));

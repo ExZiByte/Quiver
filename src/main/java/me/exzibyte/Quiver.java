@@ -1,7 +1,9 @@
 package me.exzibyte;
 
+import me.exzibyte.Listeners.Commands.HarvestExistingServers;
 import me.exzibyte.Listeners.Commands.Settings;
 import me.exzibyte.Listeners.Miscellaneous.GuildJoin;
+import me.exzibyte.Listeners.Miscellaneous.NewMember;
 import me.exzibyte.Listeners.Miscellaneous.Ready;
 import me.exzibyte.Utilities.Config;
 import me.exzibyte.Utilities.Utilities;
@@ -21,7 +23,6 @@ public class Quiver {
         Config config = new Config();
         DefaultShardManagerBuilder quiver = DefaultShardManagerBuilder.createDefault(config.get("token"));
 
-
         quiver.setActivity(Activity.watching("shards come online"));
         quiver.setStatus(OnlineStatus.DO_NOT_DISTURB);
         quiver.setMemberCachePolicy(MemberCachePolicy.ALL);
@@ -34,6 +35,8 @@ public class Quiver {
 
                 //Guild Listeners
                 new GuildJoin(),
+                new NewMember(),
+                new HarvestExistingServers(),
 
                 //Member Listeners
 
@@ -43,11 +46,13 @@ public class Quiver {
 
         quiver.setShardsTotal(2);
 
+
         quiver.build();
     }
 
     public static void main(String[] args) throws LoginException {
         utils.load();
+        utils.loadMembers();
         new Quiver();
     }
 
