@@ -149,8 +149,8 @@ public class Utilities {
             db.connect();
 
             MongoCollection<Document> membersCollection = db.getCollection("members");
-            Document newMember = new Document("userID", member.getJDA().retrieveUserById(member.getId()).complete().getId())
-                    .append("userName", member.getJDA().retrieveUserById(member.getId()).complete().getAsTag())
+            Document newMember = new Document("userID", Quiver.manager.retrieveUserById(member.getId()).complete().getId())
+                    .append("userName", Quiver.manager.retrieveUserById(member.getId()).complete().getAsTag())
                     .append("isBlacklisted", false);
 
             membersCollection.insertOne(newMember);

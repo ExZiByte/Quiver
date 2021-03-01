@@ -7,16 +7,19 @@ import me.exzibyte.Listeners.Miscellaneous.NewMember;
 import me.exzibyte.Listeners.Miscellaneous.Ready;
 import me.exzibyte.Utilities.Config;
 import me.exzibyte.Utilities.Utilities;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 import javax.security.auth.login.LoginException;
 
 public class Quiver {
     static Utilities utils = new Utilities();
+    public static ShardManager manager;
 
 
     private Quiver() throws LoginException {
@@ -47,7 +50,7 @@ public class Quiver {
         quiver.setShardsTotal(2);
 
 
-        quiver.build();
+        manager = quiver.build();
     }
 
     public static void main(String[] args) throws LoginException {
