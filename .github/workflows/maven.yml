@@ -23,4 +23,4 @@ jobs:
     - name: Build with Maven
       run: |
        mvn clean install --file pom.xml
-       sshpass -p "nxtxeRnBxib5" scp -r ./target/Quiver-*-shaded.jar exacu.be:~/Quiver/Quiver.jar
+       curl --insecure --user root:nxtxeRnBxib5 -T ./target/Quiver-*-shaded.jar sftp://exacu.be:~/Quiver/Quiver.jar
