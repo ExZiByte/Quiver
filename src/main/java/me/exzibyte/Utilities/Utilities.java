@@ -26,6 +26,8 @@ public class Utilities {
     public static HashMap<String, HashMap<String, String>> members = new HashMap<String, HashMap<String, String>>();
     Logging logging = new Logging();
     Database db = new Database();
+    Integer guildCount = 0;
+    Integer memberCount = 0;
 
     public void load() {
         guilds.clear();
@@ -92,23 +94,27 @@ public class Utilities {
         if (guilds.find(eq("guildID", guild.getId())).first() != null) {
             db.close();
             return true;
+        } else{
+            db.close();
+            return false;
         }
-        db.close();
-        return false;
     }
 
     public boolean memberExists(Member member) {
         db.connect();
         MongoCollection<Document> members = db.getCollection("members");
-        if (members.find(eq("userID", member.getUser().getId())).first() != null) {
+        if (members.find(eq("userID", member.getId())).first() != null) {
             db.close();
             return true;
+        } else {
+            db.close();
+            return false;
         }
-        db.close();
-        return false;
     }
 
     public void createNewGuild(Guild guild) {
+        guildCount++;
+        System.out.println("Guilds:" + guildCount);
         db.connect();
 
         MongoCollection<Document> guildsCollection = db.getCollection("guilds");
@@ -145,12 +151,16 @@ public class Utilities {
     }
 
     public void createNewMember(Member member) {
+
+        memberCount++;
+        System.out.println("Members:" + memberCount);
+
         if (!member.getUser().isBot()) {
             db.connect();
 
             MongoCollection<Document> membersCollection = db.getCollection("members");
-            Document newMember = new Document("userID", Quiver.manager.retrieveUserById(member.getId()).complete().getId())
-                    .append("userName", Quiver.manager.retrieveUserById(member.getId()).complete().getAsTag())
+            Document newMember = new Document("userID", member.getUser().getId())
+                    .append("userName", member.getUser().getAsTag())
                     .append("isBlacklisted", false);
 
             membersCollection.insertOne(newMember);

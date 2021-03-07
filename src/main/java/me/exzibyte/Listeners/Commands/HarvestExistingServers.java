@@ -16,10 +16,13 @@ public class HarvestExistingServers extends ListenerAdapter {
             for(Guild guild: event.getJDA().getGuilds()){
                 if(!utils.guildExists(guild)){
                     utils.createNewGuild(guild);
-                    for(Member member: guild.getMembers()){
-                        if(!utils.memberExists(member)){
-                            utils.createNewMember(member);
-                        }
+
+                }
+            }
+            for(Guild guild: event.getJDA().getShardManager().getGuilds()){
+                for(Member member: guild.getMembers()){
+                    if(!utils.memberExists(member)){
+                        utils.createNewMember(member);
                     }
                 }
             }
